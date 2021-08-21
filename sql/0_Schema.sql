@@ -24,6 +24,7 @@ CREATE TABLE `isu_condition` (
   `timestamp` DATETIME NOT NULL,
   `is_sitting` TINYINT(1) NOT NULL,
   `condition` VARCHAR(255) NOT NULL,
+  `condition_level` SMALLINT NOT NULL,
   `message` VARCHAR(255) NOT NULL,
   `created_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
   PRIMARY KEY(`id`)
@@ -32,6 +33,7 @@ CREATE TABLE `isu_condition` (
 CREATE INDEX ix_isu_condition_jia_isu_uuid on isu_condition(jia_isu_uuid);
 CREATE INDEX ix_isu_condition_jia_isu_uuid_timestamp on isu_condition(jia_isu_uuid, timestamp);
 CREATE INDEX ix_isu_condition_timestamp on isu_condition(timestamp);
+CREATE INDEX ix_isu_condition_condition_level on isu_condition(condition_level);
 
 CREATE TABLE `user` (
   `jia_user_id` VARCHAR(255) PRIMARY KEY,

@@ -43,6 +43,9 @@ const (
 	scoreConditionLevelCritical = 1
 )
 
+var levelMap = map[string]int{conditionLevelInfo: scoreConditionLevelInfo,
+	conditionLevelWarning: scoreConditionLevelWarning, conditionLevelCritical: scoreConditionLevelCritical}
+
 var (
 	db                  *sqlx.DB
 	sessionStore        sessions.Store
@@ -1010,22 +1013,30 @@ func getIsuConditionsFromDB(db *sqlx.DB, jiaIsuUUID string, endTime time.Time, c
 
 	conditions := []IsuCondition{}
 	var err error
+	levels := []int{}
+	for k, _ := range conditionLevel {
+		levels = append(levels, levelMap[k])
+	}
 
 	if startTime.IsZero() {
-		err = db.Select(&conditions,
-			"SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?"+
-				"	AND `timestamp` < ?"+
-				"	ORDER BY `timestamp` DESC LIMIT ?",
-			jiaIsuUUID, endTime, limit,
-		)
+		sql, params, err := sqlx.In("SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?"+
+			"	AND `timestamp` < ?"+
+			"   AND `condition_level` in (?)"+
+			"	ORDER BY `timestamp` DESC", jiaIsuUUID, endTime, levels)
+		if err != nil {
+			return nil, err
+		}
+		err = db.Select(&conditions, sql, params)
 	} else {
-		err = db.Select(&conditions,
-			"SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?"+
-				"	AND `timestamp` < ?"+
-				"	AND ? <= `timestamp`"+
-				"	ORDER BY `timestamp` DESC LIMIT ?",
-			jiaIsuUUID, endTime, startTime, limit,
-		)
+		sql, params, err := sqlx.In("SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?"+
+			"	AND `timestamp` < ?"+
+			"	AND ? <= `timestamp`"+
+			"   AND `condition_level` in (?)"+
+			"	ORDER BY `timestamp` DESC", jiaIsuUUID, endTime, startTime, levels)
+		if err != nil {
+			return nil, err
+		}
+		err = db.Select(&conditions, sql, params)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("db error: %v", err)
@@ -1205,12 +1216,13 @@ func postIsuCondition(c echo.Context) error {
 		if !isValidConditionFormat(cond.Condition) {
 			return c.String(http.StatusBadRequest, "bad request body")
 		}
+		level, _ := calculateConditionLevel(cond.Condition)
 
 		_, err = tx.Exec(
 			"INSERT INTO `isu_condition`"+
-				"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)"+
+				"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`, `condition_level`)"+
 				"	VALUES (?, ?, ?, ?, ?)",
-			jiaIsuUUID, timestamp, cond.IsSitting, cond.Condition, cond.Message)
+			jiaIsuUUID, timestamp, cond.IsSitting, cond.Condition, cond.Message, level)
 		if err != nil {
 			c.Logger().Errorf("db error: %v", err)
 			return c.NoContent(http.StatusInternalServerError)
