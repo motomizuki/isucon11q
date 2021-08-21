@@ -208,7 +208,9 @@ func init() {
 }
 
 func main() {
-	http.ListenAndServe("localhost:6060", nil)
+	go func() {
+		http.ListenAndServe("localhost:6060", nil)
+	}()
 	e := echo.New()
 	e.Debug = true
 	e.Logger.SetLevel(log.DEBUG)
