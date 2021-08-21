@@ -1222,7 +1222,7 @@ func postIsuCondition(c echo.Context) error {
 		_, err = tx.Exec(
 			"INSERT INTO `isu_condition`"+
 				"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`, `condition_level`)"+
-				"	VALUES (?, ?, ?, ?, ?)",
+				"	VALUES (?, ?, ?, ?, ?, ?)",
 			jiaIsuUUID, timestamp, cond.IsSitting, cond.Condition, cond.Message, level)
 		if err != nil {
 			c.Logger().Errorf("db error: %v", err)
