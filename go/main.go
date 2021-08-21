@@ -1223,7 +1223,7 @@ func postIsuCondition(c echo.Context) error {
 			"INSERT INTO `isu_condition`"+
 				"	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`, `condition_level`)"+
 				"	VALUES (?, ?, ?, ?, ?, ?)",
-			jiaIsuUUID, timestamp, cond.IsSitting, cond.Condition, cond.Message, level)
+			jiaIsuUUID, timestamp, cond.IsSitting, cond.Condition, cond.Message, levelMap[level])
 		if err != nil {
 			c.Logger().Errorf("db error: %v", err)
 			return c.NoContent(http.StatusInternalServerError)
