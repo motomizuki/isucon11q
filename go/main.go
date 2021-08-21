@@ -750,13 +750,14 @@ func getIsuGraph(c echo.Context) error {
 	}
 	defer tx.Rollback()
 
-	rows, err := tx.Query("SELECT id FROM `isu` WHERE `jia_user_id` = ? AND `jia_isu_uuid` = ? LIMIT 1",
+	var count int
+	err = tx.Get(&count, "SELECT COUNT(*) FROM `isu` WHERE `jia_user_id` = ? AND `jia_isu_uuid` = ? LIMIT 1",
 		jiaUserID, jiaIsuUUID)
 	if err != nil {
 		c.Logger().Errorf("db error: %v", err)
 		return c.NoContent(http.StatusInternalServerError)
 	}
-	if !rows.Next() {
+	if count == 0 {
 		return c.String(http.StatusNotFound, "not found: isu")
 	}
 
