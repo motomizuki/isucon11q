@@ -28,6 +28,7 @@ CREATE TABLE `isu_condition` (
 
 CREATE INDEX ix_isu_condition_jia_isu_uuid on isu_condition(jia_isu_uuid);
 CREATE INDEX ix_isu_condition_jia_isu_uuid_timestamp on isu_condition(jia_isu_uuid, timestamp);
+CREATE INDEX ix_isu_condition_timestamp on isu_condition(timestamp);
 
 CREATE TABLE `user` (
   `jia_user_id` VARCHAR(255) PRIMARY KEY,
